@@ -51,13 +51,13 @@ PyMongo/
 1. Install PyMongo:
 
 ```bash
-    pip install pymongo
+pip install pymongo
 ```
 2. Add your MongoDB Atlas URI:
 
 ```text
-    # In pymongo_tutorial.py
-    uri: str = "mongodb+srv://<username>:<password>@cluster.x.mongodb.net/"
+# In pymongo_tutorial.py
+uri: str = "mongodb+srv://<username>:<password>@cluster.x.mongodb.net/"
 ```
 
 ## Usage
@@ -65,64 +65,64 @@ PyMongo/
 1. Aggregation Pipelines
 
 ```text
-    # Execute car analysis pipeline
-    MongoDbOperation.execute_aggregate_pipeline(
-        pipeline_=Pipelines.pipeline_1()
-    )
-    
-    # Perform collection join
-    MongoDbOperation.aggregate_join_collection(
-        pipeline_=Pipelines.join_pipeline()
-    )
+# Execute car analysis pipeline
+MongoDbOperation.execute_aggregate_pipeline(
+    pipeline_=Pipelines.pipeline_1()
+)
+
+# Perform collection join
+MongoDbOperation.aggregate_join_collection(
+    pipeline_=Pipelines.join_pipeline()
+)
 ```
 
 2. Database Management
 
 ```text
-    # Create database
-    MongoDbOperation.create_database('new_db')
-    
-    # List databases
-    MongoDbOperation.get_database_names()
+# Create database
+MongoDbOperation.create_database('new_db')
+
+# List databases
+MongoDbOperation.get_database_names()
 ```
 
 3. Collection Operations
 
 ```text
-    # Create collection with validation
-    validation = Pipelines.validator()
-    MongoDbOperation.create_collection(
-        database_name='store_db',
-        collection_name='users',
-        validator=validation
-    )
-    
-    # Drop collection
-    MongoDbOperation.drop_collection('store_db', 'temp_collection')
+# Create collection with validation
+validation = Pipelines.validator()
+MongoDbOperation.create_collection(
+    database_name='store_db',
+    collection_name='users',
+    validator=validation
+)
+
+# Drop collection
+MongoDbOperation.drop_collection('store_db', 'temp_collection')
 ```
 
 4. Document Operations
 
 ```text
-    # Insert document
-    MongoDbOperation.insert_document(
-        database_name='store_db',
-        collection_name='users',
-        document={
-            "name": "John Doe",
-            "age": 30,
-            "email": "john@example.com"
-        }
-    )
-    
-    # Update document
-    MongoDbOperation.update_document(
-        database_name='store_db',
-        collection_name='users',
-        filter_condition={"name": "John Doe"},
-        update_values={"age": 31},
-        update_type="one"
-    )
+# Insert document
+MongoDbOperation.insert_document(
+    database_name='store_db',
+    collection_name='users',
+    document={
+        "name": "John Doe",
+        "age": 30,
+        "email": "john@example.com"
+    }
+)
+
+# Update document
+MongoDbOperation.update_document(
+    database_name='store_db',
+    collection_name='users',
+    filter_condition={"name": "John Doe"},
+    update_values={"age": 31},
+    update_type="one"
+)
 ```
 
 ## Predefined Pipelines (pymongo_pipelines.py)
@@ -132,7 +132,7 @@ PyMongo/
     - Calculate car statistics
 
 ```text
-    Pipelines.pipeline_1()
+Pipelines.pipeline_1()
 ```
 
 2. **Data Transformation**
@@ -140,14 +140,14 @@ PyMongo/
     - Format prices
 
 ```text
-    Pipelines.pipeline_6()
+Pipelines.pipeline_6()
 ```
 
 3. **Joins**
     - Users with Orders
 
 ```text
-    Pipelines.join_pipeline()
+Pipelines.join_pipeline()
 ```
 
 4. **Validation Schema**
@@ -156,7 +156,7 @@ PyMongo/
     - Email format validation
 
 ```text
-    Pipelines.validator()
+Pipelines.validator()
 ```
 
 ## Sample Data Structures
@@ -164,38 +164,38 @@ PyMongo/
 ### **Cars Collection**
 
 ```doctest
-    {
-        "maker": "Hyundai",
-        "model": "Creta",
-        "fuel_type": "Diesel",
-        "price": 1500000,
-        "features": ["Sunroof", "Leather Seats"],
-        "owners": [
-            {"name": "Raju", "location": "Mumbai"}
-        ]
-    }
+{
+    "maker": "Hyundai",
+    "model": "Creta",
+    "fuel_type": "Diesel",
+    "price": 1500000,
+    "features": ["Sunroof", "Leather Seats"],
+    "owners": [
+        {"name": "Raju", "location": "Mumbai"}
+    ]
+}
 ```
 
 ### **Users Collection**
 
 ```doctest
-    {
-        "_id": "user1",
-        "name": "Amit Sharma",
-        "email": "amit.sharma@example.com",
-        "phone": "+91-987654210"
-    }
+{
+    "_id": "user1",
+    "name": "Amit Sharma",
+    "email": "amit.sharma@example.com",
+    "phone": "+91-987654210"
+}
 ```
 
 ### **Orders Collection**
 
 ```doctest
-    {
-        "_id": "order1",
-        "user_id": "user1",
-        "product": "Laptop",
-        "amount": 50000
-    }
+{
+    "_id": "order1",
+    "user_id": "user1",
+    "product": "Laptop",
+    "amount": 50000
+}
 ```
 
 ## Error Handling
@@ -215,12 +215,12 @@ PyMongo/
 **Example validation error output:**
 
 ```text
-    ❌ WriteError: Document failed validation!
-    Field: age
-    Description: must be greater than or equal to 18
-      Operator: $gte
-      Specified: {"minimum": 18}
-      Reason: "consideredValue" '17' is not numeric
+❌ WriteError: Document failed validation!
+Field: age
+Description: must be greater than or equal to 18
+  Operator: $gte
+  Specified: {"minimum": 18}
+  Reason: "consideredValue" '17' is not numeric
 ```
 
 # MongoDB Workflow Overview
@@ -241,7 +241,7 @@ This project provides a robust framework for managing MongoDB operations with va
 
 ## 🛠️ Database/Collection Setup
 
-- Create databases and collections with strict schema validation rules.
+Create databases and collections with strict schema validation rules.
 - **Predefined collections**:
   - `cars` (in `Test` database)
   - `users`, `orders` (in `store_db` database)
