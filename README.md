@@ -37,6 +37,8 @@
 PyMongo/
 ├── pymongo_tutorial.py    # Main MongoDB operations class
 ├── pymongo_pipelines.py   # Aggregation pipelines and sample data
+├── .gitignore             # Ignore tracked files.
+├── LICENSE                # Grants rights to users
 └── README.md              # This documentation
 ```
 
