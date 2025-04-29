@@ -1,32 +1,48 @@
-# MongoDB Operations with PyMongo
+# MongoDB Operations Manager with PyMongo
 
-**A comprehensive Python implementation for MongoDB operations using PyMongo driver, featuring aggregation pipelines, collection management, CRUD operations, and schema validation.**
+![MongoDB](https://img.shields.io/badge/MongoDB-%234ea94b.svg?style=for-the-badge&logo=mongodb&logoColor=white)
+![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
+
+A complete MongoDB management system implementing CRUD operations, aggregation pipelines, schema validation, and index management using PyMongo.
 
 ## Features
 
-- **MongoDB Connection Management**
-
-- **Aggregation Pipeline Execution**
-
-- **Database & Collection Operations**
+### Core Operations
+- **Database Management**
   - Create/Drop databases
+  - List all databases
+- **Collection Operations**
   - Create/Drop collections
-  - List databases/collections
+  - List collection names
+  - Schema validation/modification
+- **Document Operations**
+  - Insert (single/bulk)
+  - Update (single/multiple)
+  - Delete (single/multiple)
+  - Fetch documents
 
-- **CRUD Operations**
-  - Document insertion/updating/deletion
-  - Document fetching
+### Advanced Features
+- **Aggregation Framework**
+  - 10 predefined pipelines
+  - Join operations between collections
+  - Complex data transformations
+- **Index Management**
+  - Create indexes
+  - List existing indexes
+  - Drop indexes
+- **Validation System**
+  - JSON schema validation
+  - Detailed error reporting
+  - Schema modification for existing collections
 
-- **Join Operations**
+### Operational Safety
+- Connection pooling management
+- Comprehensive error handling
+- Type hinting throughout
+- Input validation for all operations
+- Clean resource cleanup
 
-- **Schema Validation**
-
-- **Error Handling**
-  - Connection errors
-  - Write errors
-  - Validation errors
-
-- **Predefined Aggregation Pipelines**
+### Predefined Aggregation Pipelines
 
 - **Sample Datasets**
   - Cars data (15 documents)
@@ -127,6 +143,30 @@ MongoDbOperation.update_document(
 )
 ```
 
+5. Index Management
+
+```text
+# Create index
+MongoDbOperation.create_index(
+    database_name='store_db',
+    collection_name='users',
+    index_name='email'
+)
+
+# List indexes
+MongoDbOperation.show_indexes(
+    database_name='store_db',
+    collection_name='users'
+)
+
+# Drop index
+MongoDbOperation.drop_index(
+    database_name='store_db',
+    collection_name='users',
+    index_name='email_1'
+)
+```
+
 ## Predefined Pipelines (pymongo_pipelines.py)
 
 1. **Basic Aggregation**
@@ -215,6 +255,21 @@ Pipelines.validator()
 - Collection/Database existence checks
 
 **Example validation error output:**
+
+## Index Management
+**Supported Index Operations**
+
+1. Creation
+   - Single field indexes
+   - Unique constraints
+
+2. Inspection
+   - List all indexes
+   - View index specifications
+
+3. Removal
+   - Drop by index name
+   - Safety checks before removal
 
 ```text
 ❌ WriteError: Document failed validation!
