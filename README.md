@@ -254,8 +254,6 @@ Pipelines.validator()
 
 - Collection/Database existence checks
 
-**Example validation error output:**
-
 ## Index Management
 **Supported Index Operations**
 
@@ -270,6 +268,8 @@ Pipelines.validator()
 3. Removal
    - Drop by index name
    - Safety checks before removal
+
+**Example validation error output:**
 
 ```text
 ❌ WriteError: Document failed validation!
