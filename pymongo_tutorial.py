@@ -174,8 +174,8 @@ class MongoDbOperation:
 
             print(f"The collection '{collection_name}' was created successfully.")
 
-        except CollectionInvalid as ci:
-            logging.warning(f"The collection '{collection_name}' already exists: {ci}")
+        except CollectionInvalid:
+            logging.warning(f"The collection '{collection_name}' already exists")
         except PyMongoError as ex:
             logging.exception(f"An error occurred while creating the collection '{collection_name}': {ex}")
         finally:
