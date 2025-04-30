@@ -17,15 +17,17 @@ logging.basicConfig(
 class MongoDbOperation:
     @classmethod
     def __connect(cls) -> Optional[MongoClient]:
-
+        client: Optional[MongoClient] = None
         try:
-            uri: str = "PASTE YOUR URI HERE" # get it from MongoDB Atlas
+            uri: str = "PASTE YOUR URI HERE" # get it from MongoDB Atlas or get it from your local MongoDb
             client: MongoClient = MongoClient(uri, serverSelectionTimeoutMS=5000)
             client.admin.command('ping')
             logging.info("Connected to MongoDB successfully!")
             return client
         except ConnectionFailure as cf:
-            logging.error(f"Could not connect to MongoDB: {cf}")
+            logging.exception(f"Could not connect to MongoDB: {cf}")
+            if client is not None:
+                client.close()
             return None
 
     @staticmethod
