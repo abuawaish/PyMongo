@@ -7,6 +7,8 @@ from pymongo_pipelines import Pipelines
 from pymongo.errors import ConnectionFailure, ConfigurationError, CollectionInvalid, PyMongoError, WriteError, OperationFailure
 import logging
 from typing import Any, MutableMapping, Optional
+import json
+from bson import json_util
 
 logging.basicConfig(
     level=logging.INFO,
@@ -46,12 +48,10 @@ class MongoDbOperation:
             my_collection = db.get_collection('cars')
 
             logging.info("Executing aggregation pipeline...")
+            documents = list(my_collection.aggregate(pipeline_))
 
-            result = my_collection.aggregate(pipeline_)
-            for document in result:
-                for key, value in document.items():
-                    print(f'{key} : {value}')
-                print("=" * 30)
+            # Convert ObjectId and other BSON types to JSON-serializable format
+            print(json.dumps(documents, indent=4, default=json_util.default))
 
         except PyMongoError as ex:
             logging.exception(f"Aggregation failed: {ex}")
@@ -76,21 +76,10 @@ class MongoDbOperation:
             my_collection = db.get_collection('users')
 
             logging.info("Executing aggregation join pipeline...")
-            result = my_collection.aggregate(pipeline_)
+            documents = list(my_collection.aggregate(pipeline_))
 
-            for document in result:
-                for key, value in document.items():
-                    if key == "orders" and isinstance(value, list):
-                        if not value:
-                            print("Orders: None")
-                        else:
-                            print("Orders:")
-                            for order in value:
-                                for k, v in order.items():
-                                    print(f'  {k} : {v}')
-                    elif key != "orders":
-                        print(f'{key} : {value}')
-                print("=" * 30)
+            # Convert ObjectId and other BSON types to JSON-serializable format
+            print(json.dumps(documents, indent=4, default=json_util.default))
 
         except PyMongoError as ex:
             logging.exception(f"Aggregation failed: {ex}")
@@ -238,16 +227,12 @@ class MongoDbOperation:
                 return
 
             collection = db.get_collection(collection_name)
-            documents = collection.find()
+            documents = list(collection.find())
 
-            found = False
-            for doc in documents:
-                found = True
-                for k, v in doc.items():
-                    print(f"{k}: {v}")
-                print("-" * 30)
+            # Convert ObjectId and other BSON types to JSON-serializable format
+            print(json.dumps(documents, indent=4, default=json_util.default))
 
-            if not found:
+            if not documents:
                 print(f"No documents found in collection '{collection_name}'.")
 
         except PyMongoError as ex:
@@ -638,12 +623,12 @@ class MongoDbOperation:
 
 if __name__ == "__main__":
     try:
-        validation_rule = Pipelines.validator()
-        # MongoDbOperation.modify_existing_collection_schema(database_name = 'store_db', collection_name = 'users_1', validator = validation_rule)
-        # MongoDbOperation.create_index(database_name='store_db', collection_name='users_1', index_name='name')
-        # MongoDbOperation.show_indexes(database_name='store_db', collection_name='users_1')
-        # MongoDbOperation.drop_index(database_name='store_db', collection_name='users_1', index_name='name_1')
-        # MongoDbOperation.update_document(database_name='store_db', collection_name='users_1', filter_condition={"name":"sufiyan"}, update_values={"name": "serazi"}, update_type="one")
+        pipeline = Pipelines.pipeline_5()
+        join_pipeline = Pipelines.join_pipeline()
+
+        # MongoDbOperation.execute_aggregate_pipeline(pipeline_ = pipeline)
+        # MongoDbOperation.aggregate_join_collection(pipeline_ = join_pipeline)
+        MongoDbOperation.fetch_document(database_name = 'store_db', collection_name = 'users')
 
     except ConfigurationError:
         logging.error("Could not configure MongoDB client. Check your internet connection.")
