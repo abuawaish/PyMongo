@@ -4,9 +4,10 @@ from pymongo.results import DeleteResult, UpdateResult, InsertOneResult, InsertM
 from pymongo.synchronous.command_cursor import CommandCursor
 
 from pymongo_pipelines import Pipelines
-from pymongo.errors import ConnectionFailure, ConfigurationError, CollectionInvalid, PyMongoError, WriteError, OperationFailure
+from pymongo.errors import ConnectionFailure, ConfigurationError, CollectionInvalid, PyMongoError, WriteError, OperationFailure, DuplicateKeyError, BulkWriteError
+
 import logging
-from typing import Any, MutableMapping, Optional
+from typing import Any, MutableMapping, Optional, Mapping
 import json
 from bson import json_util
 
@@ -19,17 +20,14 @@ logging.basicConfig(
 class MongoDbOperation:
     @classmethod
     def __connect(cls) -> Optional[MongoClient]:
-        client: Optional[MongoClient] = None
         try:
             uri: str = "PASTE YOUR URI HERE" # get it from MongoDB Atlas or get it from your local MongoDb
-            client: MongoClient = MongoClient(uri, serverSelectionTimeoutMS=5000)
+            client: MongoClient[Mapping[str, Any]] = MongoClient(uri, serverSelectionTimeoutMS=5000)
             client.admin.command('ping')
             logging.info("Connected to MongoDB successfully!")
             return client
         except ConnectionFailure as cf:
             logging.exception(f"Could not connect to MongoDB: {cf}")
-            if client is not None:
-                client.close()
             return None
 
     @staticmethod
@@ -299,7 +297,7 @@ class MongoDbOperation:
         if not collection_name:
             raise ValueError("Collection name must not be empty.")
         if not document:
-            raise ValueError("Document must be a dictionary or a list of dictionaries and Document must not be empty.")
+            raise ValueError("Document must be a dictionary or a list of dictionaries and must not be empty.")
 
         client: Optional[MongoClient] = MongoDbOperation.__connect()
         if client is None:
@@ -320,69 +318,67 @@ class MongoDbOperation:
 
             if isinstance(document, dict):
                 result_1: InsertOneResult = collection.insert_one(document)
-                print(f"Document inserted with _id: {result_1.inserted_id}")
+                print(f"✅ Document inserted with _id: {result_1.inserted_id}")
             elif isinstance(document, list):
                 result_2: InsertManyResult = collection.insert_many(document)
                 for inserted_id in result_2.inserted_ids:
-                    print(f"Document inserted with _id: {inserted_id}")
+                    print(f"✅ Document inserted with _id: {inserted_id}")
             else:
                 raise ValueError("Document must be a dictionary or a list of dictionaries.")
 
+        except DuplicateKeyError as dke:
+            logging.error(f"Duplicate key error: {dke}")
+            print("❌ Duplicate key error! A document with the same _id already exists.")
+            print(f"Details: {dke.details}")
+
+        except BulkWriteError as bwe:
+            logging.error(f"Bulk write error: {bwe}")
+            print("❌ Bulk write error occurred.")
+            for error in bwe.details.get("writeErrors", []):
+                print(f"  - Index: {error['index']}")
+                print(f"  - Code: {error['code']}")
+                print(f"  - Message: {error['errmsg']}")
+
         except WriteError as we:
-            print("\n❌ WriteError: Document failed validation!")
-            print("Error Details:")
-
-            if we.details is not None:
-                for key, value in we.details.items():
-                    if key == "errInfo":
-                        print("\nError Info:")
-                        failing_doc_id = value.get("failingDocumentId", None)
-                        if failing_doc_id:
-                            print(f"  Failing Document ID: {failing_doc_id}")
-                        # Dive into the 'details' part
-                        details = value.get("details", {})
-                        if details:
-                            schema_rules = details.get("schemaRulesNotSatisfied", [])
-                            for rule in schema_rules:
-                                if rule.get("operatorName") == "properties":
-                                    properties_not_satisfied = rule.get("propertiesNotSatisfied", [])
-                                    for prop in properties_not_satisfied:
-                                        property_name = prop.get("propertyName", "Unknown")
-                                        description = prop.get("description", "No description")
-                                        print(f"\n  Field: {property_name}")
-                                        print(f"  Description: {description}")
-
-                                        # Further go inside "details"
-                                        prop_details = prop.get("details", [])
-                                        for detail in prop_details:
-                                            operator_name = detail.get("operatorName", "Unknown")
-                                            specified = detail.get("specifiedAs", "Unknown")
-                                            reason = detail.get("reason", "Unknown reason")
-                                            considered_value = detail.get("consideredValue", "Unknown value")
-                                            considered_type = detail.get("consideredType", "Unknown type")
-                                            print(f"    Operator: {operator_name}")
-                                            print(f"    Specified: {specified}")
-                                            print(f"    Reason: {reason}")
-                                            print(f"    Considered Value: {considered_value}")
-                                            print(f"    Considered Type: {considered_type}")
-
-                                elif rule.get("operatorName") == "required":
-                                    # Handling missing required fields
-                                    missing_properties = rule.get("missingProperties", [])
-                                    if missing_properties:
-                                        print("\n  Missing Required Fields:")
-                                        for field in missing_properties:
-                                            print(f"    - {field}")
-                    else:
-                        print(f"{key}: {value}")
-            print()
+            MongoDbOperation.__handle_write_error_details(we)
 
         except PyMongoError as ex:
-            logging.exception(f"An error occurred while inserting the document(s): {ex}")
-            print(f"Failed to insert document(s): {ex}")
+            logging.exception(f"General PyMongo error: {ex}")
+            print(f"❌ Failed to insert document(s): {ex}")
+
         finally:
             client.close()
             logging.info("MongoDB connection closed.")
+
+    # Helper method for detailed schema write errors
+    @classmethod
+    def __handle_write_error_details(cls, we: WriteError) -> None:
+        print("❌ WriteError: Document failed validation!")
+        if we.details:
+            for key, value in we.details.items():
+                if key == "errInfo":
+                    print("🔎 Validation Error Details:")
+                    failing_doc_id = value.get("failingDocumentId")
+                    if failing_doc_id:
+                        print(f"  Failing Document ID: {failing_doc_id}")
+                    for rule in value.get("details", {}).get("schemaRulesNotSatisfied", []):
+                        operator = rule.get("operatorName")
+                        if operator == "properties":
+                            for prop in rule.get("propertiesNotSatisfied", []):
+                                print(f"\n  Field: {prop.get('propertyName', 'Unknown')}")
+                                print(f"  Description: {prop.get('description', 'No description')}")
+                                for detail in prop.get("details", []):
+                                    print(f"    - Operator: {detail.get('operatorName')}")
+                                    print(f"    - Specified: {detail.get('specifiedAs')}")
+                                    print(f"    - Reason: {detail.get('reason')}")
+                                    print(f"    - Considered Value: {detail.get('consideredValue')}")
+                                    print(f"    - Considered Type: {detail.get('consideredType')}")
+                        elif operator == "required":
+                            print("\n  Missing Required Fields:")
+                            for field in rule.get("missingProperties", []):
+                                print(f"    - {field}")
+                else:
+                    print(f"{key}: {value}")
 
     @staticmethod
     def update_document(database_name: str, collection_name: str, filter_condition: dict[str, Any], update_values: dict[str, Any], update_type: str = "one") -> None:
