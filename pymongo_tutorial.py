@@ -1,3 +1,5 @@
+from urllib.parse import quote_plus
+
 from pymongo import MongoClient, ASCENDING
 
 from pymongo.results import DeleteResult, UpdateResult, InsertOneResult, InsertManyResult
@@ -21,7 +23,12 @@ class MongoDbOperation:
     @classmethod
     def __connect(cls) -> Optional[MongoClient]:
         try:
-            uri: str = "PASTE YOUR URI HERE" # get it from MongoDB Atlas or get it from your local MongoDb
+            app_name: str = "YOUR_MONGODB_CLUSTER_NAME"
+            username: str = "YOUR_USERNAME"
+            password: str = "YOUR_PASSWORD"
+            cluster_url: str = "YOUR_CLUSTER_URL"
+            encoded_password: str = quote_plus(password)
+            uri: str = f"mongodb+srv://{username}:{encoded_password}@{cluster_url}/?retryWrites=true&w=majority&appName={app_name}"
             client: MongoClient[Mapping[str, Any]] = MongoClient(uri, serverSelectionTimeoutMS=5000)
             client.admin.command('ping')
             logging.info("Connected to MongoDB successfully!")
@@ -255,7 +262,6 @@ class MongoDbOperation:
             db = client[database_name]
             # Trigger actual creation by inserting a dummy doc
             db['__temp_collection__'].insert_one({'created': True})
-            db.drop_collection('__temp_collection__')  # Clean it up
 
             if database_name in client.list_database_names():
                 print(f"The database '{database_name}' was created successfully.")
@@ -624,7 +630,8 @@ if __name__ == "__main__":
 
         # MongoDbOperation.execute_aggregate_pipeline(pipeline_ = pipeline)
         # MongoDbOperation.aggregate_join_collection(pipeline_ = join_pipeline)
-        MongoDbOperation.fetch_document(database_name = 'store_db', collection_name = 'users')
+        # MongoDbOperation.fetch_document(database_name = 'store_db', collection_name = 'users')
+        MongoDbOperation.create_database('my_db')
 
     except ConfigurationError:
         logging.error("Could not configure MongoDB client. Check your internet connection.")
